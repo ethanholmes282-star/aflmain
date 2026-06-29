@@ -1,0 +1,804 @@
+--variables
+local plr = game.Players.LocalPlayer
+local plr_scripts = plr.PlayerScripts
+local c = plr.Character
+
+local jersey = c.Jersey
+
+
+--hbe
+local hbe_on = false
+local hbe_size = 4
+
+local jersey_hbe_on = false
+local jersey_transparency = false
+local jersey_hbe_x = 2
+local jersey_hbe_y = 2
+local jersey_hbe_z
+
+	--create selectionbox
+	local selection_box = Instance.new("SelectionBox")
+	selection_box.Parent = jersey
+	selection_box.Adornee = jersey
+	selection_box.LineThickness = 0.01
+
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "peen destroyer " .. Fluent.Version,
+    SubTitle = "by netro",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true, -- The blur may be detectable, setting this to false disables blur entirely
+    Theme = "Amethyst",
+    MinimizeKey = Enum.KeyCode.Insert -- Used when theres no MinimizeKeybind
+})
+
+-- Fluent provides Lucide Icons, they are optional
+local Tab = {
+    hbe = Window:AddTab({ Title = "Hitbox Extension", Icon = "box" }),
+	jers = Window:AddTab({ Title = "Jersey Hitbox Extension", Icon = "box" }),
+    play = Window:AddTab({ Title = "Player Settings", Icon = "user" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+}
+
+local Toggle = Tab.hbe:AddToggle("MyToggle", 
+{
+    Title = "HBE Toggle", 
+    Description = "toggle hitbox extension",
+    Default = false,
+    Callback = function(state)
+	if state then
+	    hbe_on = true
+    else
+        hbe_on = false
+    end 
+end
+})
+
+local hbe_s = Tab.hbe:AddSlider("Slider", 
+{
+    Title = "HBE Slider",
+    Description = "5 is legit 7 is pushing legitness",
+    Default = 4,
+    Min = 0,
+    Max = 7,
+    Rounding = .1,
+    Callback = function(Value)
+        hbe_size = Value
+    end
+})
+
+local function hbe()
+    if hbe_on ==true then
+        c.Head.Size = Vector3.new(hbe_size,hbe_size,hbe_size)
+        c.Head.Massless=true
+        c.Head.CanCollide=false
+        c.Head.Transparency=1
+    end
+end
+
+
+local Toggle = Tab.jers:AddToggle("MyToggle", 
+{
+    Title = "Jersey HBE Toggle", 
+    Description = "toggle hbe for jersey (tackling,pushing,smothers)",
+    Default = false,
+    Callback = function(state)
+	if state then
+	    jersey_hbe_on = true
+    else
+        jersey_hbe_on = false
+    end 
+end
+})
+
+local Toggle = Tab.jers:AddToggle("MyToggle", 
+{
+    Title = "Jersey Hitbox Viewer", 
+    Description = "toggle hbe viewer (jersey only nigger)",
+    Default = false,
+    Callback = function(state)
+	if state then
+	    jersey_transparency = true
+    else
+        jersey_transparency = false
+    end 
+end
+})
+
+local jers_x = Tab.jers:AddSlider("Slider", 
+{
+    Title = "Jersey X Size Slider",
+    Description = "x size",
+    Default = 2,
+    Min = 0,
+    Max = 7,
+    Rounding = .1,
+    Callback = function(Value)
+        jersey_hbe_x = Value
+    end
+})
+local jers_y = Tab.jers:AddSlider("Slider", 
+{
+    Title = "Jersey Y Size Slider",
+    Description = "y size",
+    Default = 2,
+    Min = 0,
+    Max = 7,
+    Rounding = .1,
+    Callback = function(Value)
+        jersey_hbe_y = Value
+    end
+})
+local jers_z = Tab.jers:AddSlider("Slider", 
+{
+    Title = "Jersey Z Size Slider",
+    Description = "Z size",
+    Default = 2,
+    Min = 0,
+    Max = 7,
+    Rounding = .1,
+    Callback = function(Value)
+        jersey_hbe_z = Value
+    end
+})
+
+local function jers_hbe()
+selection_box.Color3 = Color3.fromHSV((tick() * 0.25) % 1, 1, 1)
+if jersey_transparency == true then
+selection_box.Visible = true
+else
+	selection_box.Visible = false
+end
+if jersey_hbe_on == true then
+	jersey.Size = Vector3.new(
+	jersey_hbe_x,
+	jersey_hbe_y,
+	jersey_hbe_z
+)
+
+end
+end
+
+
+-- deload anticheat functions (dont touch unless u know what you're doing)
+for _, scripts in ipairs(plr_scripts:GetDescendants()) do
+   if scripts:IsA("LocalScript") and scripts.Name == "LocalScript" and scripts.Parent == plr_scripts then
+    scripts:Destroy()
+   end
+end
+
+for _, scripts in ipairs(plr.PlayerGui:GetDescendants()) do
+   if scripts:IsA("LocalScript") and scripts.Name ~= "GroupOnlyGameScript" and scripts.Parent == plr.PlayerGui then
+    scripts:Destroy()
+   end
+end
+
+if jersey:FindFirstChild("LocalScript") then
+    jersey.LocalScript:Destroy()
+end
+
+--local replace_head = Instance.new("Part")
+--replace_head.Shape = "Block"
+--replace_head.Parent = c
+--replace_head.Size = c.Head.Size
+--replace_head.Color = c.Head.Color
+---c.Head.face.Parent = replace_head
+--local mesh = c.Head.Mesh:Clone()
+--mesh.Parent = replace_head
+--replace_head.Name = "Head2"
+--c.Head.CanCollide = false
+--replace_head.Massless = true
+
+
+-- https://lua.expert/
+local LocalPlayer = game.Players.LocalPlayer
+local v1 = LocalPlayer:GetMouse()
+local v2 = LocalPlayer.Character.Jersey
+local v3 = v2.Parent
+local Humanoid = v3:WaitForChild("Humanoid")
+local Configuration = v2:WaitForChild("Configuration")
+local v4 = false
+local v5 = false
+local v6 = time()
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local HTTPEvent = ReplicatedStorage:WaitForChild("HTTPEvent")
+local t = {
+	Head = Vector3.new(2, 1, 1),
+	Torso = Vector3.new(2, 2, 1),
+	["Left Arm"] = Vector3.new(1, 2, 1),
+	["Right Arm"] = Vector3.new(1, 2, 1),
+	["Left Leg"] = Vector3.new(1, 2, 1),
+	["Right Leg"] = Vector3.new(1, 2, 1),
+	HumanoidRootPart = Vector3.new(2, 2, 1)
+}
+local v7 = 22.5
+local v8 = nil
+local v9 = nil
+local v10 = nil
+local v11 = nil
+local t2 = {}
+local StaminaGui = LocalPlayer.PlayerGui.StaminaGui
+
+
+local Background = LocalPlayer.PlayerGui.StaminaGui.Background
+
+
+local Frame = LocalPlayer.PlayerGui.StaminaGui.Background.Frame
+
+local StaminaText = LocalPlayer.PlayerGui.StaminaGui.Background.StaminaText
+
+local UserInputService = game:GetService("UserInputService")
+
+
+
+
+local Sprint2 = v2.Configuration.Mobile:WaitForChild("Support").Sprint
+local Dive2 = v2.Configuration.Mobile:WaitForChild("Support").Dive
+local Keybinds = LocalPlayer:WaitForChild("Keybinds")
+
+local function UpdateStaminaColor() --[[ UpdateStaminaColor | Line: 98 | Upvalues: Frame (copy), Background (copy) ]]
+	local Scale = Frame.Size.X.Scale
+	local v1 = Color3.new(0.145098, 0.941176, 0.301961)
+	local v2 = Color3.new(0.960784, 0.121569, 0.121569)
+
+	Background.BackgroundColor3 = Color3.new(v1.R + (v2.R - v1.R) * Scale, v1.G + (v2.G - v1.G) * Scale, v1.B + (v2.B - v1.B) * Scale)
+end
+
+function Walk() --[[ Walk | Line: 110 | Upvalues: v7 (ref), LocalPlayer (copy), Background (copy), v5 (ref), Frame (copy), UpdateStaminaColor (copy) ]]
+	v7 = 22.5
+	LocalPlayer.Character.Humanoid.WalkSpeed = 22.5
+	LocalPlayer.Character.Humanoid.WalkSpeed = 22.5
+	Background.BackgroundColor3 = BrickColor.new("Lime green").Color
+
+	while not v5 do
+		LocalPlayer.Character.Humanoid.WalkSpeed = 22.5
+
+		if Frame.Size.X.Scale > 0 then
+			Frame.Size = UDim2.new(Frame.Size.X.Scale - 0.0015, 0, 1, 0)
+			Frame.Position = UDim2.new(1 - Frame.Size.X.Scale, 0, 0, 0)
+			UpdateStaminaColor()
+		end
+
+		wait()
+	end
+end
+function Sprint() --[[ Sprint | Line: 127 | Upvalues: v5 (ref), v7 (ref), LocalPlayer (copy), Background (copy), Frame (copy), UpdateStaminaColor (copy) ]]
+	v5 = true
+	v7 = 29
+	LocalPlayer.Character.Humanoid.WalkSpeed = 29
+	Background.BackgroundColor3 = BrickColor.new("Cyan").Color
+
+	while v5 do
+		LocalPlayer.Character.Humanoid.WalkSpeed = 29
+
+		if Frame.Size.X.Scale < 1 then
+			Frame.Size = UDim2.new(Frame.Size.X.Scale + 0.0015, 0, 1, 0)
+			Frame.Position = UDim2.new(1 - Frame.Size.X.Scale, 0, 0, 0)
+			UpdateStaminaColor()
+		else
+			v5 = false
+			Walk()
+		end
+
+		wait()
+	end
+end
+function Dive() --[[ Dive | Line: 148 | Upvalues: LocalPlayer (copy), ReplicatedStorage (copy), v4 (ref) ]]
+	if not LocalPlayer.Character:FindFirstChild("Football") or (not game.ReplicatedStorage.ScoreboardValues.Clock.IsRunning.Value or game.ReplicatedStorage.Marked.Value) then
+		v4 = true
+		LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0, 5, 0) + LocalPlayer.Character.HumanoidRootPart.CFrame.lookVector * 7.5 * 18 / 2
+		LocalPlayer.Character.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 2.5, 0) * CFrame.Angles(-1.5707963267948966, 0, 0)
+		LocalPlayer.Character.Humanoid.PlatformStand = true
+		wait(1)
+		LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new()
+		wait(3)
+		v4 = false
+		LocalPlayer.Character.Humanoid.PlatformStand = false
+
+		return
+	end
+
+	ReplicatedStorage.DoveWith:FireServer()
+	v4 = true
+	LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0, 5, 0) + LocalPlayer.Character.HumanoidRootPart.CFrame.lookVector * 7.5 * 18 / 2
+	LocalPlayer.Character.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 2.5, 0) * CFrame.Angles(-1.5707963267948966, 0, 0)
+	LocalPlayer.Character.Humanoid.PlatformStand = true
+	wait(1)
+	LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new()
+	wait(3)
+	v4 = false
+	LocalPlayer.Character.Humanoid.PlatformStand = false
+end
+function OPDive(p1) --[[ OPDive | Line: 161 | Upvalues: v4 (ref), LocalPlayer (copy) ]]
+	v4 = true
+	p1.HumanoidRootPart.Velocity = Vector3.new(0, 5, 0) + p1.HumanoidRootPart.CFrame.lookVector * 7.5 * 18 / 2
+	p1.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 2.5, 0) * CFrame.Angles(-1.5707963267948966, 0, 0)
+	p1.Humanoid.PlatformStand = true
+	wait(1)
+	p1.HumanoidRootPart.Velocity = Vector3.new()
+	wait(3)
+	v4 = false
+	p1.Humanoid.PlatformStand = false
+end
+
+local function handleSprintInput() --[[ handleSprintInput | Line: 171 | Upvalues: v5 (ref) ]]
+	if v5 then
+		v5 = false
+		Walk()
+	else
+		Sprint()
+	end
+end
+
+local function handleDiveInput() --[[ handleDiveInput | Line: 180 | Upvalues: v4 (ref) ]]
+	if v4 then
+		return
+	end
+
+	Dive()
+end
+
+local function handleOPDiveInput() --[[ handleOPDiveInput | Line: 186 | Upvalues: v4 (ref), v3 (copy), LocalPlayer (copy) ]]
+	if v4 or (v3:FindFirstChild("Football") or LocalPlayer.Backpack:FindFirstChild("Football")) then
+		return
+	end
+
+	OPDive(v3)
+end
+
+v1.KeyDown:Connect(function(p1) --[[ Line: 192 | Upvalues: Keybinds (copy), v5 (ref), v4 (ref), v3 (copy), LocalPlayer (copy) ]]
+	local v1 = false
+	local v2 = false
+	local v32 = p1:byte() == 8
+	local SprintKey = Keybinds:FindFirstChild("SprintKey")
+	local DiveKey = Keybinds:FindFirstChild("DiveKey")
+
+	if SprintKey and p1:lower() == SprintKey.Value:lower() or not SprintKey and p1 == "q" then
+		v1 = true
+	end
+
+	if DiveKey and p1:lower() == DiveKey.Value:lower() or not DiveKey and p1 == "e" then
+		v2 = true
+	end
+
+	if v1 then
+		if v5 then
+			v5 = false
+			Walk()
+		else
+			Sprint()
+		end
+	elseif v2 then
+		if not v4 then
+			Dive()
+		end
+	else
+		if not v32 or (v4 or (v3:FindFirstChild("Football") or LocalPlayer.Backpack:FindFirstChild("Football"))) then
+			return
+		end
+
+		OPDive(v3)
+	end
+end)
+game:GetService("UserInputService").InputBegan:connect(function(p1, p2) --[[ Line: 221 | Upvalues: v5 (ref), v4 (ref), v3 (copy), LocalPlayer (copy) ]]
+	if p2 then
+		return
+	end
+
+	if p1.UserInputType ~= Enum.UserInputType.Gamepad1 then
+		return
+	end
+
+	if p1.KeyCode == Enum.KeyCode.ButtonB then
+		if v5 then
+			v5 = false
+			Walk()
+		else
+			Sprint()
+		end
+	elseif p1.KeyCode == Enum.KeyCode.ButtonX then
+		if not (v4 or (v3:FindFirstChild("Football") or LocalPlayer.Backpack:FindFirstChild("Football"))) then
+			Dive()
+		end
+	else
+		if p1.KeyCode ~= Enum.KeyCode.ButtonY or (v4 or (v3:FindFirstChild("Football") or LocalPlayer.Backpack:FindFirstChild("Football"))) then
+			return
+		end
+
+		OPDive(v3)
+	end
+end)
+Sprint2.MouseButton1Click:Connect(handleSprintInput)
+Dive2.MouseButton1Click:Connect(handleDiveInput)
+Humanoid.Changed:Connect(function(p1) --[[ Line: 241 | Upvalues: Humanoid (copy), v6 (ref) ]]
+	if not p1 or (p1 ~= "Jump" or not Humanoid.Jump) then
+		return
+	end
+
+	local v1 = time()
+
+	if v1 < v6 + 0 then
+		Humanoid.Jump = false
+
+		return
+	end
+
+	v6 = v1
+end)
+v2.Touched:Connect(function(p1) --[[ Line: 252 ]]
+	v2.Tackled:FireServer(p1)
+end)
+
+local TackleGui = game:GetService("ReplicatedStorage"):WaitForChild("TackleGui")
+local Title = LocalPlayer.PlayerGui:WaitForChild("TackleGui"):WaitForChild("Title")
+
+TackleGui.OnClientEvent:Connect(function(p1) --[[ Line: 261 | Upvalues: Title (copy) ]]
+	if p1[1] ~= "TackleBroadcast" then
+		return
+	end
+
+	Title.Text = p1[3] .. " was niggered by " .. p1[2]
+	wait(1.5)
+	Title.Text = ""
+end)
+
+local LocalPlayer2 = game:GetService("Players").LocalPlayer
+local t3 = {
+	"Head",
+	"Torso",
+	"UpperTorso",
+	"LowerTorso",
+	"Left Arm",
+	"Right Arm",
+	"Left Leg",
+	"Right Leg",
+	"LeftHand",
+	"RightHand",
+	"LeftFoot",
+	"RightFoot",
+	"HumanoidRootPart",
+	"Jersey"
+}
+
+local function isValidPart(p1) --[[ isValidPart | Line: 292 | Upvalues: t3 (copy) ]]
+	for i, v in ipairs(t3) do
+		if p1.Name == v then
+			return true
+		end
+	end
+
+	return false
+end
+
+local function subscribeInstance(p1) --[[ subscribeInstance | Line: 301 | Upvalues: t3 (copy) ]]
+	if not p1:IsA("BasePart") then
+		return
+	end
+
+	for i, v in ipairs(t3) do
+		if p1.Name == v then
+			_ = true
+
+			break
+		end
+	end
+
+	p1:GetPropertyChangedSignal("Size"):Connect(function() --[[ Line: 308 | Upvalues: p1 (copy) ]]
+		local _ = p1.Size.Magnitude > 4
+	end)
+end
+
+local function subscribeCharacter(p1) --[[ subscribeCharacter | Line: 315 | Upvalues: subscribeInstance (copy) ]]
+	for i, v in ipairs(p1:GetChildren()) do
+		subscribeInstance(v)
+	end
+
+	p1.ChildAdded:Connect(function(p1) --[[ Line: 320 | Upvalues: subscribeInstance (ref) ]]
+		subscribeInstance(p1)
+	end)
+end
+
+LocalPlayer2.CharacterAdded:Connect(function(p1) --[[ Line: 325 | Upvalues: subscribeCharacter (copy) ]]
+	subscribeCharacter(p1)
+end)
+
+local v14
+
+if not LocalPlayer2.Character then
+	RunService.RenderStepped:Connect(function() --[[ Line: 333 | Upvalues: LocalPlayer (copy), v7 (ref), v8 (ref), HTTPEvent (copy), v9 (ref), t (copy), t2 (ref), v10 (ref), Players (copy), v11 (ref) ]]
+		if not (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")) then
+			return
+		end
+
+		local Humanoid = LocalPlayer.Character:FindFirstChild("Humanoid")
+
+		LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+		local Jersey = LocalPlayer.Character:FindFirstChild("Jersey")
+
+		if Humanoid.WalkSpeed == v7 then
+			v8 = nil
+		else
+			if Humanoid.WalkSpeed == 0 then
+				return
+			end
+
+			if v8 ~= Humanoid.WalkSpeed then
+				v8 = Humanoid.WalkSpeed
+
+				local v1 = tostring(Humanoid.WalkSpeed)
+
+				
+			end
+		end
+
+		if Humanoid.JumpPower == 50 then
+			v9 = nil
+		elseif v9 ~= Humanoid.JumpPower then
+			v9 = Humanoid.JumpPower
+			
+		end
+
+		for k2, v in pairs(t) do
+			local v5 = LocalPlayer.Character:FindFirstChild(k2)
+
+			if v5 and v5:IsA("BasePart") then
+				if v5.Size == v then
+					if t2 then
+						t2[k2] = nil
+					end
+
+					continue
+				end
+
+				if not t2 then
+					t2 = {}
+				end
+
+				if t2[k2] ~= v5.Size then
+					t2[k2] = v5.Size
+					
+				end
+			end
+		end
+
+		if Jersey and Jersey.Size ~= Vector3.new(3, 5.2, 3) then
+			if v10 ~= Jersey.Size then
+				v10 = Jersey.Size
+				
+			end
+		else
+			v10 = nil
+		end
+
+		for k2, v in pairs(Players:GetPlayers()) do
+			if v ~= LocalPlayer and v.Character then
+				local Jersey2 = v.Character:FindFirstChild("Jersey")
+
+				if Jersey2 and Jersey2.Size ~= Vector3.new(3, 5.2, 3) then
+					
+				end
+			end
+		end
+
+		for i2, v in ipairs(LocalPlayer.Character:GetChildren()) do
+			if v:IsA("Tool") and (v:FindFirstChild("Handle") and v.Handle:FindFirstChild("FootballValue")) then
+				local Size = v.Handle.Size
+
+				if Size.X > 1.15 or (Size.Y > 1.15 or Size.Z > 1.75) then
+					
+				end
+			end
+		end
+
+		for i2, v in ipairs(LocalPlayer:FindFirstChild("Backpack"):GetChildren()) do
+			if v:IsA("Tool") and (v:FindFirstChild("Handle") and v.Handle:FindFirstChild("FootballValue")) then
+				local Size = v.Handle.Size
+
+				if Size.X > 1.15 or (Size.Y > 1.15 or Size.Z > 1.75) then
+					
+				end
+			end
+		end
+
+		if Humanoid.HipHeight == 0 then
+			v11 = nil
+		elseif v11 ~= Humanoid.HipHeight then
+			v11 = Humanoid.HipHeight
+			
+		end
+
+		for i2, v in ipairs(workspace:GetChildren()) do
+			if v:IsA("MeshPart") and v:FindFirstChild("FootballValue") then
+				local Size = v.Size
+
+				if Size.X > 1.15 or (Size.Y > 1.15 or Size.Z > 1.75) then
+					
+				end
+			end
+		end
+	end)
+	v14 = function() --[[ CheckRemote | Line: 459 | Upvalues: ReplicatedStorage (copy), HTTPEvent (copy), LocalPlayer (copy) ]]
+		if ReplicatedStorage:FindFirstChild("ExploitReportEvent") and ReplicatedStorage:FindFirstChild("HTTPEvent") then
+			return
+		end
+
+		
+	end
+	v14()
+	ReplicatedStorage.ChildRemoved:Connect(function(p13) --[[ Line: 471 | Upvalues: v14 (copy) ]]
+		if p13.Name ~= "ExploitReportEvent" then
+			return
+		end
+
+		v14()
+	end)
+	task.spawn(function() --[[ Line: 477 | Upvalues: v14 (copy) ]]
+		while true do
+			v14()
+			task.wait(2)
+		end
+	end)
+
+	return
+end
+
+subscribeCharacter(LocalPlayer2.Character)
+RunService.RenderStepped:Connect(function() --[[ Line: 333 | Upvalues: LocalPlayer (copy), v7 (ref), v8 (ref), HTTPEvent (copy), v9 (ref), t (copy), t2 (ref), v10 (ref), Players (copy), v11 (ref) ]]
+	if not (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")) then
+		return
+	end
+
+	local Humanoid = LocalPlayer.Character:FindFirstChild("Humanoid")
+
+	LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+	local Jersey = LocalPlayer.Character:FindFirstChild("Jersey")
+
+	if Humanoid.WalkSpeed == v7 then
+		v8 = nil
+	else
+		if Humanoid.WalkSpeed == 0 then
+			return
+		end
+
+		if v8 ~= Humanoid.WalkSpeed then
+			v8 = Humanoid.WalkSpeed
+
+			local v1 = tostring(Humanoid.WalkSpeed)
+
+
+		end
+	end
+
+	if Humanoid.JumpPower == 50 then
+		v9 = nil
+	elseif v9 ~= Humanoid.JumpPower then
+		v9 = Humanoid.JumpPower
+		
+		wait()
+	end
+
+	for k2, v in pairs(t) do
+		local v5 = LocalPlayer.Character:FindFirstChild(k2)
+
+		if v5 and v5:IsA("BasePart") then
+			if v5.Size == v then
+				if t2 then
+					t2[k2] = nil
+				end
+
+				continue
+			end
+
+			if not t2 then
+				t2 = {}
+			end
+
+			if t2[k2] ~= v5.Size then
+				t2[k2] = v5.Size
+				
+			end
+		end
+	end
+
+	if Jersey and Jersey.Size ~= Vector3.new(3, 5.2, 3) then
+		if v10 ~= Jersey.Size then
+			v10 = Jersey.Size
+			
+		end
+	else
+		v10 = nil
+	end
+
+	for k2, v in pairs(Players:GetPlayers()) do
+		if v ~= LocalPlayer and v.Character then
+			local Jersey2 = v.Character:FindFirstChild("Jersey")
+
+			if Jersey2 and Jersey2.Size ~= Vector3.new(3, 5.2, 3) then
+				
+			end
+		end
+	end
+
+	for i2, v in ipairs(LocalPlayer.Character:GetChildren()) do
+		if v:IsA("Tool") and (v:FindFirstChild("Handle") and v.Handle:FindFirstChild("FootballValue")) then
+			local Size = v.Handle.Size
+
+			if Size.X > 1.15 or (Size.Y > 1.15 or Size.Z > 1.75) then
+				
+			end
+		end
+	end
+
+	for i2, v in ipairs(LocalPlayer:FindFirstChild("Backpack"):GetChildren()) do
+		if v:IsA("Tool") and (v:FindFirstChild("Handle") and v.Handle:FindFirstChild("FootballValue")) then
+			local Size = v.Handle.Size
+
+			if Size.X > 1.15 or (Size.Y > 1.15 or Size.Z > 1.75) then
+				
+			end
+		end
+	end
+
+	if Humanoid.HipHeight == 0 then
+		v11 = nil
+	elseif v11 ~= Humanoid.HipHeight then
+		v11 = Humanoid.HipHeight
+	end
+
+	for i2, v in ipairs(workspace:GetChildren()) do
+		if v:IsA("MeshPart") and v:FindFirstChild("FootballValue") then
+			local Size = v.Size
+
+			if Size.X > 1.15 or (Size.Y > 1.15 or Size.Z > 1.75) then
+				
+			end
+		end
+	end
+end)
+v14 = function() --[[ CheckRemote | Line: 459 | Upvalues: ReplicatedStorage (copy), HTTPEvent (copy), LocalPlayer (copy) ]]
+	if ReplicatedStorage:FindFirstChild("ExploitReportEvent") and ReplicatedStorage:FindFirstChild("HTTPEvent") then
+		return
+	end
+
+	
+end
+v14()
+ReplicatedStorage.ChildRemoved:Connect(function(p13) --[[ Line: 471 | Upvalues: v14 (copy) ]]
+	if p13.Name ~= "ExploitReportEvent" then
+		return
+	end
+
+	v14()
+end)
+task.spawn(function() --[[ Line: 477 | Upvalues: v14 (copy) ]]
+	while true do
+		v14()
+		task.wait(2)
+	end
+end)
+
+
+
+
+Fluent:Notify({
+        Title = "loading",
+        Content = "loading pro afl main gui",
+        SubContent = nil, -- Optional
+        Duration = 5 -- Set to nil to make the notification not disappear
+})
+
+
+game.RunService.Heartbeat:Connect(function()
+    --replace_head.Position = c.Head.Position
+    --replace_head.Rotation = c.Head.Rotation
+hbe()
+jers_hbe()
+jersey.Massless=true
+jersey.CanCollide=false
+end)
