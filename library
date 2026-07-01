@@ -15,7 +15,7 @@ local Tabs = {}
 local Pages = {}
 
 -----------------------------------------------------
--- GUI ROOT
+-- GUI
 -----------------------------------------------------
 local gui = Instance.new("ScreenGui")
 gui.Name = "RavensClient"
@@ -29,15 +29,31 @@ local blur = Instance.new("BlurEffect")
 blur.Size = 18
 blur.Parent = Lighting
 
+-----------------------------------------------------
+-- STATUS TEXT (BOTTOM RIGHT)
+-----------------------------------------------------
+local status = Instance.new("TextLabel")
+status.Size = UDim2.new(0, 200, 0, 25)
+status.Position = UDim2.new(1, -210, 1, -30)
+status.BackgroundTransparency = 1
+status.Text = "Raven's Client"
+status.TextColor3 = Color3.fromRGB(255,255,255)
+status.Font = Enum.Font.Arcade -- closest Minecraft-like Roblox font
+status.TextSize = 14
+status.Parent = gui
+
+status.Visible = true
+
+-----------------------------------------------------
+-- TOGGLE SYSTEM (RIGHT CTRL)
+-----------------------------------------------------
 local function setState(state)
 	enabled = state
 	gui.Enabled = state
 	blur.Size = state and 18 or 0
+	status.Visible = state
 end
 
------------------------------------------------------
--- RIGHT CTRL TOGGLE
------------------------------------------------------
 UIS.InputBegan:Connect(function(input, gpe)
 	if gpe then return end
 	if input.KeyCode == Enum.KeyCode.RightControl then
@@ -46,59 +62,11 @@ UIS.InputBegan:Connect(function(input, gpe)
 end)
 
 -----------------------------------------------------
--- NOTIFICATIONS
------------------------------------------------------
-function Lib.Notify(title, subtitle, duration)
-	duration = duration or 3
-
-	local n = Instance.new("Frame")
-	n.Size = UDim2.new(0, 240, 0, 70)
-	n.Position = UDim2.new(1, 260, 1, -90)
-	n.BackgroundColor3 = Color3.fromRGB(83, 29, 94)
-	n.Parent = gui
-	n.AnchorPoint = Vector2.new(0, 1)
-
-	Instance.new("UICorner", n)
-
-	local t1 = Instance.new("TextLabel")
-	t1.Size = UDim2.new(1, -10, 0, 30)
-	t1.Position = UDim2.new(0, 5, 0, 5)
-	t1.BackgroundTransparency = 1
-	t1.Text = title
-	t1.Font = Enum.Font.SciFi
-	t1.TextColor3 = Color3.fromRGB(255,255,255)
-	t1.Parent = n
-
-	local t2 = Instance.new("TextLabel")
-	t2.Size = UDim2.new(1, -10, 0, 30)
-	t2.Position = UDim2.new(0, 5, 0, 30)
-	t2.BackgroundTransparency = 1
-	t2.Text = subtitle
-	t2.TextColor3 = Color3.fromRGB(200,200,200)
-	t2.Font = Enum.Font.SciFi
-	t2.Parent = n
-
-	n.Position = UDim2.new(1, 300, 1, -90)
-
-	TweenService:Create(n, TweenInfo.new(0.25), {
-		Position = UDim2.new(1, -260, 1, -90)
-	}):Play()
-
-	task.delay(duration, function()
-		TweenService:Create(n, TweenInfo.new(0.25), {
-			Position = UDim2.new(1, 300, 1, -90)
-		}):Play()
-		task.wait(0.25)
-		n:Destroy()
-	end)
-end
-
------------------------------------------------------
--- MAIN WINDOW (VAPE STYLE SINGLE FRAME)
+-- MAIN WINDOW
 -----------------------------------------------------
 local main = Instance.new("Frame")
 main.Size = UDim2.new(0, 520, 0, 330)
-main.Position = UDim2.new(0.3, 0, 0.3, 0)
+main.Position = UDim2.new(0.5, -260, 0.5, -165) -- CENTERED
 main.BackgroundColor3 = Color3.fromRGB(83, 29, 94)
 main.Parent = gui
 
@@ -107,7 +75,7 @@ Instance.new("UICorner", main)
 -----------------------------------------------------
 -- DRAGGING
 -----------------------------------------------------
-local dragging, dragInput, startPos, startInput
+local dragging, startPos, startInput
 
 main.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -117,7 +85,7 @@ main.InputBegan:Connect(function(input)
 	end
 end)
 
-main.InputEnded:Connect(function(input)
+UIS.InputEnded:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		dragging = false
 	end
@@ -139,20 +107,22 @@ end)
 -- TAB BAR
 -----------------------------------------------------
 local tabBar = Instance.new("Frame")
-tabBar.Size = UDim2.new(0, 120, 1, 0)
+tabBar.Size = UDim2.new(0, 130, 1, 0)
 tabBar.BackgroundColor3 = Color3.fromRGB(70, 25, 80)
 tabBar.Parent = main
 Instance.new("UICorner", tabBar)
 
 local tabLayout = Instance.new("UIListLayout", tabBar)
-tabLayout.Padding = UDim.new(0, 5)
+tabLayout.Padding = UDim.new(0, 6) -- 🔥 spacing so nothing sticks together
+tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+tabLayout.VerticalAlignment = Enum.VerticalAlignment.Top
 
 -----------------------------------------------------
--- CONTENT AREA
+-- CONTENT
 -----------------------------------------------------
 local content = Instance.new("Frame")
-content.Size = UDim2.new(1, -120, 1, 0)
-content.Position = UDim2.new(0, 120, 0, 0)
+content.Size = UDim2.new(1, -130, 1, 0)
+content.Position = UDim2.new(0, 130, 0, 0)
 content.BackgroundTransparency = 1
 content.Parent = main
 
@@ -160,6 +130,7 @@ content.Parent = main
 -- TAB SYSTEM
 -----------------------------------------------------
 function Lib.createTab(name)
+
 	local page = Instance.new("ScrollingFrame")
 	page.Size = UDim2.new(1, 0, 1, 0)
 	page.BackgroundTransparency = 1
@@ -169,14 +140,17 @@ function Lib.createTab(name)
 	page.Parent = content
 
 	local layout = Instance.new("UIListLayout", page)
-	layout.Padding = UDim.new(0, 5)
+	layout.Padding = UDim.new(0, 6) -- 🔥 spacing between features
 
 	local button = Instance.new("TextButton")
-	button.Size = UDim2.new(1, 0, 0, 35)
-	button.Text = name
+	button.Size = UDim2.new(1, -10, 0, 35)
 	button.BackgroundColor3 = Color3.fromRGB(92, 32, 104)
 	button.TextColor3 = Color3.fromRGB(255,255,255)
+	button.Text = name
+	button.Font = Enum.Font.Arcade -- Minecraft-like feel
+	button.TextSize = 14
 	button.Parent = tabBar
+
 	Instance.new("UICorner", button)
 
 	Pages[name] = page
@@ -200,6 +174,7 @@ end
 -- FEATURE
 -----------------------------------------------------
 function Lib.createFeature(tab, name, text)
+
 	local feature = Instance.new("Frame")
 	feature.Size = UDim2.new(1, -10, 0, 60)
 	feature.BackgroundColor3 = Color3.fromRGB(92, 32, 104)
@@ -212,20 +187,22 @@ function Lib.createFeature(tab, name, text)
 
 	local label = Instance.new("TextLabel")
 	label.BackgroundTransparency = 1
-	label.Size = UDim2.new(1,0,0,25)
+	label.Size = UDim2.new(1, 0, 0, 25)
 	label.Text = text .. " [OFF]"
+	label.Font = Enum.Font.Arcade
+	label.TextSize = 14
 	label.TextColor3 = Color3.fromRGB(255,255,255)
 	label.Parent = feature
 
 	local settings = Instance.new("Frame")
-	settings.Size = UDim2.new(1,0,1,-25)
+	settings.Size = UDim2.new(1, 0, 1, -25)
 	settings.Position = UDim2.new(0,0,0,25)
 	settings.BackgroundTransparency = 1
 	settings.Visible = false
 	settings.Parent = feature
 
 	local list = Instance.new("UIListLayout", settings)
-	list.Padding = UDim.new(0,5)
+	list.Padding = UDim.new(0, 6)
 
 	feature.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -245,10 +222,12 @@ end
 -- SETTINGS
 -----------------------------------------------------
 function Lib.createSettings(settings, name, type)
+
 	if type == "button" then
 		local b = Instance.new("TextButton")
 		b.Size = UDim2.new(1,0,0,30)
 		b.Text = name
+		b.Font = Enum.Font.Arcade
 		b.Parent = settings
 		return b
 
@@ -256,6 +235,7 @@ function Lib.createSettings(settings, name, type)
 		local i = Instance.new("TextBox")
 		i.Size = UDim2.new(1,0,0,30)
 		i.PlaceholderText = name
+		i.Font = Enum.Font.Arcade
 		i.Parent = settings
 		return i
 
@@ -264,6 +244,7 @@ function Lib.createSettings(settings, name, type)
 		local t = Instance.new("TextButton")
 		t.Size = UDim2.new(1,0,0,30)
 		t.Text = name .. ": FALSE"
+		t.Font = Enum.Font.Arcade
 		t.Parent = settings
 
 		t.MouseButton1Click:Connect(function()
