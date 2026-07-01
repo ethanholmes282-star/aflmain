@@ -1,21 +1,11 @@
-local Lib = {}
-
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 local Lighting = game:GetService("Lighting")
 
 local LP = Players.LocalPlayer
 
 -----------------------------------------------------
--- STATE
------------------------------------------------------
-local enabled = true
-local Tabs = {}
-local Pages = {}
-
------------------------------------------------------
--- GUI
+-- GUI ROOT
 -----------------------------------------------------
 local gui = Instance.new("ScreenGui")
 gui.Name = "RavensClient"
@@ -30,25 +20,31 @@ blur.Size = 18
 blur.Parent = Lighting
 
 -----------------------------------------------------
--- STATUS TEXT (BOTTOM RIGHT)
+-- STATUS TEXT (BOTTOM LEFT)
 -----------------------------------------------------
 local status = Instance.new("TextLabel")
-status.Size = UDim2.new(0, 200, 0, 25)
-status.Position = UDim2.new(1, -210, 1, -30)
+status.Size = UDim2.new(0, 220, 0, 22)
+status.Position = UDim2.new(0, 10, 1, -30)
 status.BackgroundTransparency = 1
 status.Text = "Raven's Client"
 status.TextColor3 = Color3.fromRGB(255,255,255)
-status.Font = Enum.Font.Arcade -- closest Minecraft-like Roblox font
+status.Font = Enum.Font.Arcade
 status.TextSize = 14
+status.TextXAlignment = Enum.TextXAlignment.Left
 status.Parent = gui
 
-status.Visible = true
+-----------------------------------------------------
+-- STATE
+-----------------------------------------------------
+local open = true
+local Tabs = {}
+local Pages = {}
 
 -----------------------------------------------------
--- TOGGLE SYSTEM (RIGHT CTRL)
+-- TOGGLE UI
 -----------------------------------------------------
-local function setState(state)
-	enabled = state
+local function setUI(state)
+	open = state
 	gui.Enabled = state
 	blur.Size = state and 18 or 0
 	status.Visible = state
@@ -57,7 +53,7 @@ end
 UIS.InputBegan:Connect(function(input, gpe)
 	if gpe then return end
 	if input.KeyCode == Enum.KeyCode.RightControl then
-		setState(not enabled)
+		setUI(not open)
 	end
 end)
 
@@ -66,10 +62,9 @@ end)
 -----------------------------------------------------
 local main = Instance.new("Frame")
 main.Size = UDim2.new(0, 520, 0, 330)
-main.Position = UDim2.new(0.5, -260, 0.5, -165) -- CENTERED
+main.Position = UDim2.new(0.5, -260, 0.5, -165)
 main.BackgroundColor3 = Color3.fromRGB(83, 29, 94)
 main.Parent = gui
-
 Instance.new("UICorner", main)
 
 -----------------------------------------------------
@@ -104,7 +99,7 @@ UIS.InputChanged:Connect(function(input)
 end)
 
 -----------------------------------------------------
--- TAB BAR
+-- TAB BAR (FIXED SPACING)
 -----------------------------------------------------
 local tabBar = Instance.new("Frame")
 tabBar.Size = UDim2.new(0, 130, 1, 0)
@@ -112,13 +107,21 @@ tabBar.BackgroundColor3 = Color3.fromRGB(70, 25, 80)
 tabBar.Parent = main
 Instance.new("UICorner", tabBar)
 
-local tabLayout = Instance.new("UIListLayout", tabBar)
-tabLayout.Padding = UDim.new(0, 6) -- 🔥 spacing so nothing sticks together
-tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-tabLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+local list = Instance.new("UIListLayout")
+list.Parent = tabBar
+list.Padding = UDim.new(0, 8)
+list.HorizontalAlignment = Enum.HorizontalAlignment.Center
+list.VerticalAlignment = Enum.VerticalAlignment.Top
+list.SortOrder = Enum.SortOrder.LayoutOrder
+
+local pad = Instance.new("UIPadding")
+pad.Parent = tabBar
+pad.PaddingTop = UDim.new(0, 10)
+pad.PaddingLeft = UDim.new(0, 5)
+pad.PaddingRight = UDim.new(0, 5)
 
 -----------------------------------------------------
--- CONTENT
+-- CONTENT AREA
 -----------------------------------------------------
 local content = Instance.new("Frame")
 content.Size = UDim2.new(1, -130, 1, 0)
@@ -129,31 +132,33 @@ content.Parent = main
 -----------------------------------------------------
 -- TAB SYSTEM
 -----------------------------------------------------
-function Lib.createTab(name)
+local tabCount = 0
+
+local function createTab(name)
+
+	tabCount += 1
 
 	local page = Instance.new("ScrollingFrame")
 	page.Size = UDim2.new(1, 0, 1, 0)
 	page.BackgroundTransparency = 1
 	page.ScrollBarThickness = 4
-	page.CanvasSize = UDim2.new(0,0,5,0)
 	page.Visible = false
 	page.Parent = content
 
-	local layout = Instance.new("UIListLayout", page)
-	layout.Padding = UDim.new(0, 6) -- 🔥 spacing between features
+	local layout = Instance.new("UIListLayout")
+	layout.Parent = page
+	layout.Padding = UDim.new(0, 6)
 
 	local button = Instance.new("TextButton")
 	button.Size = UDim2.new(1, -10, 0, 35)
 	button.BackgroundColor3 = Color3.fromRGB(92, 32, 104)
 	button.TextColor3 = Color3.fromRGB(255,255,255)
 	button.Text = name
-	button.Font = Enum.Font.Arcade -- Minecraft-like feel
+	button.Font = Enum.Font.Arcade
 	button.TextSize = 14
+	button.LayoutOrder = tabCount
 	button.Parent = tabBar
-
 	Instance.new("UICorner", button)
-
-	Pages[name] = page
 
 	button.MouseButton1Click:Connect(function()
 		for _, v in pairs(Pages) do
@@ -162,10 +167,11 @@ function Lib.createTab(name)
 		page.Visible = true
 	end)
 
-	if not Tabs.first then
-		Tabs.first = true
+	if tabCount == 1 then
 		page.Visible = true
 	end
+
+	Pages[name] = page
 
 	return page
 end
@@ -173,7 +179,7 @@ end
 -----------------------------------------------------
 -- FEATURE
 -----------------------------------------------------
-function Lib.createFeature(tab, name, text)
+local function createFeature(tab, text)
 
 	local feature = Instance.new("Frame")
 	feature.Size = UDim2.new(1, -10, 0, 60)
@@ -190,7 +196,6 @@ function Lib.createFeature(tab, name, text)
 	label.Size = UDim2.new(1, 0, 0, 25)
 	label.Text = text .. " [OFF]"
 	label.Font = Enum.Font.Arcade
-	label.TextSize = 14
 	label.TextColor3 = Color3.fromRGB(255,255,255)
 	label.Parent = feature
 
@@ -202,7 +207,7 @@ function Lib.createFeature(tab, name, text)
 	settings.Parent = feature
 
 	local list = Instance.new("UIListLayout", settings)
-	list.Padding = UDim.new(0, 6)
+	list.Padding = UDim.new(0, 5)
 
 	feature.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -221,14 +226,13 @@ end
 -----------------------------------------------------
 -- SETTINGS
 -----------------------------------------------------
-function Lib.createSettings(settings, name, type)
-
+local function createSettings(frame, name, type)
 	if type == "button" then
 		local b = Instance.new("TextButton")
 		b.Size = UDim2.new(1,0,0,30)
 		b.Text = name
 		b.Font = Enum.Font.Arcade
-		b.Parent = settings
+		b.Parent = frame
 		return b
 
 	elseif type == "input" then
@@ -236,7 +240,7 @@ function Lib.createSettings(settings, name, type)
 		i.Size = UDim2.new(1,0,0,30)
 		i.PlaceholderText = name
 		i.Font = Enum.Font.Arcade
-		i.Parent = settings
+		i.Parent = frame
 		return i
 
 	elseif type == "toggle" then
@@ -245,7 +249,7 @@ function Lib.createSettings(settings, name, type)
 		t.Size = UDim2.new(1,0,0,30)
 		t.Text = name .. ": FALSE"
 		t.Font = Enum.Font.Arcade
-		t.Parent = settings
+		t.Parent = frame
 
 		t.MouseButton1Click:Connect(function()
 			state = not state
@@ -257,4 +261,10 @@ function Lib.createSettings(settings, name, type)
 end
 
 -----------------------------------------------------
-return Lib
+-- API RETURN
+-----------------------------------------------------
+return {
+	createTab = createTab,
+	createFeature = createFeature,
+	createSettings = createSettings
+}
