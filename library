@@ -8,9 +8,8 @@ local LP = Players.LocalPlayer
 -- GUI ROOT
 -----------------------------------------------------
 local gui = Instance.new("ScreenGui")
-gui.Name = "RavensClient"
 gui.Parent = LP:WaitForChild("PlayerGui")
-gui.Enabled = true
+gui.Name = "RavenPanels"
 
 -----------------------------------------------------
 -- BLUR
@@ -20,7 +19,7 @@ blur.Size = 18
 blur.Parent = Lighting
 
 -----------------------------------------------------
--- STATUS TEXT (BOTTOM LEFT)
+-- STATUS TEXT
 -----------------------------------------------------
 local status = Instance.new("TextLabel")
 status.Size = UDim2.new(0, 220, 0, 22)
@@ -34,15 +33,10 @@ status.TextXAlignment = Enum.TextXAlignment.Left
 status.Parent = gui
 
 -----------------------------------------------------
--- STATE
------------------------------------------------------
-local open = true
-local Tabs = {}
-local Pages = {}
-
------------------------------------------------------
 -- TOGGLE UI
 -----------------------------------------------------
+local open = true
+
 local function setUI(state)
 	open = state
 	gui.Enabled = state
@@ -50,221 +44,159 @@ local function setUI(state)
 	status.Visible = state
 end
 
-UIS.InputBegan:Connect(function(input, gpe)
+UIS.InputBegan:Connect(function(i, gpe)
 	if gpe then return end
-	if input.KeyCode == Enum.KeyCode.RightControl then
+	if i.KeyCode == Enum.KeyCode.RightControl then
 		setUI(not open)
 	end
 end)
 
 -----------------------------------------------------
--- MAIN WINDOW
+-- DRAG SYSTEM
 -----------------------------------------------------
-local main = Instance.new("Frame")
-main.Size = UDim2.new(0, 520, 0, 330)
-main.Position = UDim2.new(0.5, -260, 0.5, -165)
-main.BackgroundColor3 = Color3.fromRGB(83, 29, 94)
-main.Parent = gui
-Instance.new("UICorner", main)
+local function makeDraggable(frame, handle)
+	handle = handle or frame
 
------------------------------------------------------
--- DRAGGING
------------------------------------------------------
-local dragging, startPos, startInput
+	local dragging, startPos, startInput
 
-main.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		dragging = true
-		startInput = input.Position
-		startPos = main.Position
-	end
-end)
+	handle.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragging = true
+			startInput = input.Position
+			startPos = frame.Position
+		end
+	end)
 
-UIS.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		dragging = false
-	end
-end)
+	UIS.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragging = false
+		end
+	end)
 
-UIS.InputChanged:Connect(function(input)
-	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-		local delta = input.Position - startInput
-		main.Position = UDim2.new(
-			startPos.X.Scale,
-			startPos.X.Offset + delta.X,
-			startPos.Y.Scale,
-			startPos.Y.Offset + delta.Y
-		)
-	end
-end)
+	UIS.InputChanged:Connect(function(input)
+		if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+			local delta = input.Position - startInput
+			frame.Position = UDim2.new(
+				startPos.X.Scale,
+				startPos.X.Offset + delta.X,
+				startPos.Y.Scale,
+				startPos.Y.Offset + delta.Y
+			)
+		end
+	end)
+end
 
 -----------------------------------------------------
--- TAB BAR (FIXED SPACING)
+-- HOME PANEL (CONTROL CENTER)
 -----------------------------------------------------
-local tabBar = Instance.new("Frame")
-tabBar.Size = UDim2.new(0, 130, 1, 0)
-tabBar.BackgroundColor3 = Color3.fromRGB(70, 25, 80)
-tabBar.Parent = main
-Instance.new("UICorner", tabBar)
+local home = Instance.new("Frame")
+home.Size = UDim2.new(0, 200, 0, 250)
+home.Position = UDim2.new(0.5, -100, 0.5, -125)
+home.BackgroundColor3 = Color3.fromRGB(83, 29, 94)
+home.Parent = gui
+Instance.new("UICorner", home)
 
-local list = Instance.new("UIListLayout")
-list.Parent = tabBar
-list.Padding = UDim.new(0, 8)
-list.HorizontalAlignment = Enum.HorizontalAlignment.Center
-list.VerticalAlignment = Enum.VerticalAlignment.Top
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,0,0,35)
+title.BackgroundColor3 = Color3.fromRGB(92, 32, 104)
+title.Text = "HOME"
+title.Font = Enum.Font.Arcade
+title.TextSize = 14
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.Parent = home
+
+Instance.new("UICorner", title)
+
+makeDraggable(home, title)
+
+local list = Instance.new("UIListLayout", home)
+list.Padding = UDim.new(0, 6)
 list.SortOrder = Enum.SortOrder.LayoutOrder
 
-local pad = Instance.new("UIPadding")
-pad.Parent = tabBar
-pad.PaddingTop = UDim.new(0, 10)
-pad.PaddingLeft = UDim.new(0, 5)
-pad.PaddingRight = UDim.new(0, 5)
+-----------------------------------------------------
+-- PANEL SYSTEM (VAPE STYLE WINDOWS)
+-----------------------------------------------------
+local panels = {}
+
+local function createPanel(name)
+
+	local panel = Instance.new("Frame")
+	panel.Size = UDim2.new(0, 240, 0, 200)
+	panel.Position = UDim2.new(0.2 + (#panels * 0.1), 0, 0.2, 0)
+	panel.BackgroundColor3 = Color3.fromRGB(92, 32, 104)
+	panel.Parent = gui
+	Instance.new("UICorner", panel)
+
+	local top = Instance.new("TextLabel")
+	top.Size = UDim2.new(1,0,0,30)
+	top.BackgroundColor3 = Color3.fromRGB(70, 25, 80)
+	top.Text = name
+	top.Font = Enum.Font.Arcade
+	top.TextSize = 14
+	top.TextColor3 = Color3.fromRGB(255,255,255)
+	top.Parent = panel
+
+	Instance.new("UICorner", top)
+
+	makeDraggable(panel, top)
+
+	local holder = Instance.new("Frame")
+	holder.Size = UDim2.new(1,0,1,-30)
+	holder.Position = UDim2.new(0,0,0,30)
+	holder.BackgroundTransparency = 1
+	holder.Parent = panel
+
+	local layout = Instance.new("UIListLayout", holder)
+	layout.Padding = UDim.new(0,5)
+
+	table.insert(panels, panel)
+
+	return holder
+end
 
 -----------------------------------------------------
--- CONTENT AREA
+-- HOME BUTTONS
 -----------------------------------------------------
-local content = Instance.new("Frame")
-content.Size = UDim2.new(1, -130, 1, 0)
-content.Position = UDim2.new(0, 130, 0, 0)
-content.BackgroundTransparency = 1
-content.Parent = main
+local function addButton(name, callback)
+
+	local b = Instance.new("TextButton")
+	b.Size = UDim2.new(1, -10, 0, 35)
+	b.BackgroundColor3 = Color3.fromRGB(70, 25, 80)
+	b.Text = "Open " .. name
+	b.Font = Enum.Font.Arcade
+	b.TextSize = 13
+	b.TextColor3 = Color3.fromRGB(255,255,255)
+	b.Parent = home
+	Instance.new("UICorner", b)
+
+	b.MouseButton1Click:Connect(callback)
+end
 
 -----------------------------------------------------
--- TAB SYSTEM
+-- API
 -----------------------------------------------------
-local tabCount = 0
+local Lib = {}
 
-local function createTab(name)
+function Lib.createPanel(name)
+	local holder = createPanel(name)
 
-	tabCount += 1
-
-	local page = Instance.new("ScrollingFrame")
-	page.Size = UDim2.new(1, 0, 1, 0)
-	page.BackgroundTransparency = 1
-	page.ScrollBarThickness = 4
-	page.Visible = false
-	page.Parent = content
-
-	local layout = Instance.new("UIListLayout")
-	layout.Parent = page
-	layout.Padding = UDim.new(0, 6)
-
-	local button = Instance.new("TextButton")
-	button.Size = UDim2.new(1, -10, 0, 35)
-	button.BackgroundColor3 = Color3.fromRGB(92, 32, 104)
-	button.TextColor3 = Color3.fromRGB(255,255,255)
-	button.Text = name
-	button.Font = Enum.Font.Arcade
-	button.TextSize = 14
-	button.LayoutOrder = tabCount
-	button.Parent = tabBar
-	Instance.new("UICorner", button)
-
-	button.MouseButton1Click:Connect(function()
-		for _, v in pairs(Pages) do
-			v.Visible = false
-		end
-		page.Visible = true
+	addButton(name, function()
+		holder.Parent.Visible = true
 	end)
 
-	if tabCount == 1 then
-		page.Visible = true
-	end
-
-	Pages[name] = page
-
-	return page
+	return holder
 end
 
------------------------------------------------------
--- FEATURE
------------------------------------------------------
-local function createFeature(tab, text)
-
-	local feature = Instance.new("Frame")
-	feature.Size = UDim2.new(1, -10, 0, 60)
-	feature.BackgroundColor3 = Color3.fromRGB(92, 32, 104)
-	feature.Parent = tab
-
-	Instance.new("UICorner", feature)
-
-	local enabled = false
-	local settingsOpen = false
-
-	local label = Instance.new("TextLabel")
-	label.BackgroundTransparency = 1
-	label.Size = UDim2.new(1, 0, 0, 25)
-	label.Text = text .. " [OFF]"
-	label.Font = Enum.Font.Arcade
-	label.TextColor3 = Color3.fromRGB(255,255,255)
-	label.Parent = feature
-
-	local settings = Instance.new("Frame")
-	settings.Size = UDim2.new(1, 0, 1, -25)
-	settings.Position = UDim2.new(0,0,0,25)
-	settings.BackgroundTransparency = 1
-	settings.Visible = false
-	settings.Parent = feature
-
-	local list = Instance.new("UIListLayout", settings)
-	list.Padding = UDim.new(0, 5)
-
-	feature.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			enabled = not enabled
-			label.Text = text .. (enabled and " [ON]" or " [OFF]")
-
-		elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
-			settingsOpen = not settingsOpen
-			settings.Visible = settingsOpen
-		end
-	end)
-
-	return settings
+function Lib.addFeature(panel, text)
+	local f = Instance.new("TextLabel")
+	f.Size = UDim2.new(1,-10,0,30)
+	f.BackgroundColor3 = Color3.fromRGB(70, 25, 80)
+	f.Text = text
+	f.Font = Enum.Font.Arcade
+	f.TextColor3 = Color3.fromRGB(255,255,255)
+	f.Parent = panel
+	Instance.new("UICorner", f)
+	return f
 end
 
------------------------------------------------------
--- SETTINGS
------------------------------------------------------
-local function createSettings(frame, name, type)
-	if type == "button" then
-		local b = Instance.new("TextButton")
-		b.Size = UDim2.new(1,0,0,30)
-		b.Text = name
-		b.Font = Enum.Font.Arcade
-		b.Parent = frame
-		return b
-
-	elseif type == "input" then
-		local i = Instance.new("TextBox")
-		i.Size = UDim2.new(1,0,0,30)
-		i.PlaceholderText = name
-		i.Font = Enum.Font.Arcade
-		i.Parent = frame
-		return i
-
-	elseif type == "toggle" then
-		local state = false
-		local t = Instance.new("TextButton")
-		t.Size = UDim2.new(1,0,0,30)
-		t.Text = name .. ": FALSE"
-		t.Font = Enum.Font.Arcade
-		t.Parent = frame
-
-		t.MouseButton1Click:Connect(function()
-			state = not state
-			t.Text = name .. ": " .. tostring(state):upper()
-		end)
-
-		return t
-	end
-end
-
------------------------------------------------------
--- API RETURN
------------------------------------------------------
-return {
-	createTab = createTab,
-	createFeature = createFeature,
-	createSettings = createSettings
-}
+return Lib
