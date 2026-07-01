@@ -1,98 +1,139 @@
-local RavenLib = {}
+local Lib = {}
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local Lighting = game:GetService("Lighting")
 
-local LocalPlayer = Players.LocalPlayer
+local LP = Players.LocalPlayer
 
 -----------------------------------------------------
--- MAIN GUI (YOUR ORIGINAL TEMPLATE BASE)
+-- STATE
+-----------------------------------------------------
+local guiEnabled = false
+local Tabs = {}
+local Pages = {}
+
+-----------------------------------------------------
+-- GUI ROOT
 -----------------------------------------------------
 local gui = Instance.new("ScreenGui")
-gui.Name = "ravens_client"
-gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.Name = "vape_style_ui"
+gui.Parent = LP:WaitForChild("PlayerGui")
+gui.Enabled = false -- ❗ NOT ENABLED ON START
 
+-----------------------------------------------------
+-- BLUR
+-----------------------------------------------------
 local blur = Instance.new("BlurEffect")
 blur.Size = 0
 blur.Parent = Lighting
 
-local open = true
-local Tabs = {}
+local function setUI(state)
+	guiEnabled = state
+	gui.Enabled = state
+	blur.Size = state and 18 or 0
+end
 
 -----------------------------------------------------
--- RIGHT CTRL TOGGLE + BLUR
+-- TOGGLE (RIGHT CTRL)
 -----------------------------------------------------
 UIS.InputBegan:Connect(function(input, gpe)
 	if gpe then return end
 	if input.KeyCode == Enum.KeyCode.RightControl then
-		open = not open
-		gui.Enabled = open
-		blur.Size = open and 18 or 0
+		setUI(not guiEnabled)
 	end
 end)
 
 -----------------------------------------------------
--- TAB (CLONES YOUR TEST IMPORT STYLE)
+-- MAIN WINDOW (VAPE STYLE CONTAINER)
 -----------------------------------------------------
-function RavenLib.createTab(tabname)
-	local testTemplate = Instance.new("Frame")
-	testTemplate.Name = tabname
-	testTemplate.Parent = gui
-	testTemplate.BackgroundColor3 = Color3.fromRGB(83, 29, 94)
-	testTemplate.Size = UDim2.new(0, 156, 0, 276)
-	testTemplate.Position = UDim2.new(0.24, 0, 0.23, 0)
+local main = Instance.new("Frame")
+main.Size = UDim2.new(0, 500, 0, 320)
+main.Position = UDim2.new(0.3, 0, 0.3, 0)
+main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+main.Parent = gui
 
-	local corner = Instance.new("UICorner", testTemplate)
+Instance.new("UICorner", main)
 
-	-- TOP TITLE (like TEST IMPORT)
-	local title = Instance.new("TextLabel")
-	title.Name = "tabname"
-	title.Parent = testTemplate
-	title.AnchorPoint = Vector2.new(0.5, 0)
-	title.Position = UDim2.new(0.5, 0, -0.15, 0)
-	title.Size = UDim2.new(0, 175, 0, 50)
-	title.BackgroundColor3 = Color3.fromRGB(92, 32, 104)
-	title.Font = Enum.Font.SciFi
-	title.Text = "    " .. tabname
-	title.TextColor3 = Color3.fromRGB(255,255,255)
-	title.TextSize = 20
-	title.TextXAlignment = Enum.TextXAlignment.Left
+-----------------------------------------------------
+-- LEFT TAB BAR (VAPE STYLE)
+-----------------------------------------------------
+local tabBar = Instance.new("Frame")
+tabBar.Size = UDim2.new(0, 120, 1, 0)
+tabBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+tabBar.Parent = main
 
-	Instance.new("UICorner", title)
+Instance.new("UICorner", tabBar)
 
-	-- MAIN SCROLLING (EXACT YOUR STRUCTURE)
-	local mainscrolling = Instance.new("ScrollingFrame")
-	mainscrolling.Name = "mainscrolling"
-	mainscrolling.Parent = testTemplate
-	mainscrolling.Active = true
-	mainscrolling.BackgroundTransparency = 1
-	mainscrolling.Position = UDim2.new(0.04, 0, 0.05, 0)
-	mainscrolling.Size = UDim2.new(0, 143, 0, 249)
-	mainscrolling.ScrollBarThickness = 5
-	mainscrolling.CanvasSize = UDim2.new(0,0,5,0)
+local tabLayout = Instance.new("UIListLayout", tabBar)
+tabLayout.Padding = UDim.new(0, 5)
 
-	local layout = Instance.new("UIListLayout", mainscrolling)
+-----------------------------------------------------
+-- CONTENT HOLDER
+-----------------------------------------------------
+local content = Instance.new("Frame")
+content.Size = UDim2.new(1, -120, 1, 0)
+content.Position = UDim2.new(0, 120, 0, 0)
+content.BackgroundTransparency = 1
+content.Parent = main
+
+-----------------------------------------------------
+-- TAB SYSTEM
+-----------------------------------------------------
+function Lib.createTab(name)
+	local page = Instance.new("Frame")
+	page.Size = UDim2.new(1, 0, 1, 0)
+	page.BackgroundTransparency = 1
+	page.Visible = false
+	page.Parent = content
+
+	local scroll = Instance.new("ScrollingFrame")
+	scroll.Size = UDim2.new(1, 0, 1, 0)
+	scroll.BackgroundTransparency = 1
+	scroll.CanvasSize = UDim2.new(0, 0, 5, 0)
+	scroll.ScrollBarThickness = 4
+	scroll.Parent = page
+
+	local layout = Instance.new("UIListLayout", scroll)
 	layout.Padding = UDim.new(0, 5)
 
-	Tabs[tabname] = testTemplate
-	return testTemplate
+	-- TAB BUTTON (LEFT SIDE)
+	local tabButton = Instance.new("TextButton")
+	tabButton.Size = UDim2.new(1, 0, 0, 35)
+	tabButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+	tabButton.TextColor3 = Color3.fromRGB(255,255,255)
+	tabButton.Text = name
+	tabButton.Parent = tabBar
+	Instance.new("UICorner", tabButton)
+
+	Pages[name] = page
+
+	tabButton.MouseButton1Click:Connect(function()
+		for _, v in pairs(Pages) do
+			v.Visible = false
+		end
+		page.Visible = true
+	end)
+
+	-- auto open first tab
+	if not Tabs.first then
+		Tabs.first = true
+		page.Visible = true
+	end
+
+	return page
 end
 
 -----------------------------------------------------
--- FEATURE (ADDS TO mainscrolling)
+-- FEATURE
 -----------------------------------------------------
-function RavenLib.createFeature(tabname, name, text)
-	local tab = Tabs[tabname]
-	if not tab then return end
-
-	local scroll = tab:FindFirstChild("mainscrolling")
+function Lib.createFeature(tab, name, text)
+	local scroll = tab:FindFirstChildOfClass("ScrollingFrame")
 	if not scroll then return end
 
 	local feature = Instance.new("Frame")
-	feature.Size = UDim2.new(1, 0, 0, 80)
-	feature.BackgroundColor3 = Color3.fromRGB(92, 32, 104)
+	feature.Size = UDim2.new(1, -10, 0, 60)
+	feature.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 	feature.Parent = scroll
 	Instance.new("UICorner", feature)
 
@@ -100,37 +141,24 @@ function RavenLib.createFeature(tabname, name, text)
 	local settingsOpen = false
 
 	local label = Instance.new("TextLabel")
-	label.Parent = feature
-	label.Size = UDim2.new(1,0,0,25)
 	label.BackgroundTransparency = 1
-	label.Font = Enum.Font.SciFi
-	label.TextSize = 14
-	label.TextColor3 = Color3.fromRGB(255,255,255)
+	label.Size = UDim2.new(1, 0, 0, 25)
 	label.Text = text .. " [OFF]"
+	label.TextColor3 = Color3.fromRGB(255,255,255)
+	label.Parent = feature
 
-	-- SETTINGS FRAME (LIKE YOUR TEST INPUT AREA)
 	local settings = Instance.new("Frame")
-	settings.Name = "settings"
-	settings.Parent = feature
+	settings.Size = UDim2.new(1, 0, 1, -25)
+	settings.Position = UDim2.new(0, 0, 0, 25)
 	settings.BackgroundTransparency = 1
-	settings.Size = UDim2.new(1,0,1,-25)
-	settings.Position = UDim2.new(0,0,0,25)
 	settings.Visible = false
+	settings.Parent = feature
 
-	local settingsScroll = Instance.new("ScrollingFrame")
-	settingsScroll.Name = "settingsScroll"
-	settingsScroll.Parent = settings
-	settingsScroll.BackgroundTransparency = 1
-	settingsScroll.Size = UDim2.new(1,0,1,0)
-	settingsScroll.ScrollBarThickness = 5
-	settingsScroll.CanvasSize = UDim2.new(0,0,3,0)
+	local list = Instance.new("UIListLayout", settings)
+	list.Padding = UDim.new(0, 5)
 
-	local layout = Instance.new("UIListLayout", settingsScroll)
-	layout.Padding = UDim.new(0,5)
-
-	-------------------------------------------------
-	-- CLICK LOGIC (YOUR REQUEST)
-	-------------------------------------------------
+	-- LEFT CLICK = TOGGLE
+	-- RIGHT CLICK = SETTINGS
 	feature.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
 			enabled = not enabled
@@ -146,43 +174,31 @@ function RavenLib.createFeature(tabname, name, text)
 end
 
 -----------------------------------------------------
--- SETTINGS (PUT INSIDE settingsScroll)
+-- SETTINGS
 -----------------------------------------------------
-function RavenLib.createSettings(feature, name, type)
-	local settingsScroll = feature:FindFirstChild("settings")
-	if not settingsScroll then return end
-	settingsScroll = settingsScroll:FindFirstChild("settingsScroll")
-	if not settingsScroll then return end
+function Lib.createSettings(feature, name, type)
+	local holder = feature:FindFirstChildWhichIsA("Frame")
 
 	if type == "button" then
 		local b = Instance.new("TextButton")
-		b.Parent = settingsScroll
-		b.Size = UDim2.new(1,0,0,30)
+		b.Size = UDim2.new(1, 0, 0, 30)
 		b.Text = name
-		b.BackgroundColor3 = Color3.fromRGB(83,29,94)
-		b.TextColor3 = Color3.fromRGB(255,255,255)
-		Instance.new("UICorner", b)
+		b.Parent = feature
 		return b
 
 	elseif type == "input" then
 		local i = Instance.new("TextBox")
-		i.Parent = settingsScroll
-		i.Size = UDim2.new(1,0,0,30)
+		i.Size = UDim2.new(1, 0, 0, 30)
 		i.PlaceholderText = name
-		i.BackgroundColor3 = Color3.fromRGB(83,29,94)
-		i.TextColor3 = Color3.fromRGB(255,255,255)
-		Instance.new("UICorner", i)
+		i.Parent = feature
 		return i
 
 	elseif type == "toggle" then
 		local state = false
 		local t = Instance.new("TextButton")
-		t.Parent = settingsScroll
-		t.Size = UDim2.new(1,0,0,30)
+		t.Size = UDim2.new(1, 0, 0, 30)
 		t.Text = name .. ": FALSE"
-		t.BackgroundColor3 = Color3.fromRGB(83,29,94)
-		t.TextColor3 = Color3.fromRGB(255,255,255)
-		Instance.new("UICorner", t)
+		t.Parent = feature
 
 		t.MouseButton1Click:Connect(function()
 			state = not state
@@ -194,31 +210,4 @@ function RavenLib.createSettings(feature, name, type)
 end
 
 -----------------------------------------------------
--- CODE FEATURE
------------------------------------------------------
-function RavenLib.createCodeF(feature, code)
-	local settingsScroll = feature.settings.settingsScroll
-
-	local btn = Instance.new("TextButton")
-	btn.Parent = settingsScroll
-	btn.Size = UDim2.new(1,0,0,30)
-	btn.Text = "Run Code"
-	btn.BackgroundColor3 = Color3.fromRGB(92,32,104)
-	btn.TextColor3 = Color3.fromRGB(255,255,255)
-	Instance.new("UICorner", btn)
-
-	btn.MouseButton1Click:Connect(function()
-		local src = type(code) == "table" and table.concat(code, "\n") or code
-		local func = loadstring(src)
-		if func then func() end
-	end)
-end
-
-function RavenLib.createCodeS(feature, code)
-	RavenLib.createCodeF(feature, code)
-	RavenLib.createSettings(feature, "Input", "input")
-	RavenLib.createSettings(feature, "Toggle", "toggle")
-end
-
------------------------------------------------------
-return RavenLib
+return Lib
